@@ -1,0 +1,7 @@
+[config.connections.dev]
+host = 'localhost'
+port = "5432"
+user = "dev"
+
+[permissions]
+file = "permissions.per"
