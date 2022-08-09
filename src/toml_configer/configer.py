@@ -145,6 +145,8 @@ def set(config: dict, key: str, value: str):
     if key_parts[-1] in prev:
         if "w" not in _get_permission(permissions, key):
             exit(f"Error in set: You dont have this permission - '{key} = w'.")
+        if "d" not in _get_permission(permissions, key) and type(prev[key_parts[-1]]) == dict:
+            exit(f"Error in set: You dont have this permission - '{key} = d'.")
         prev[key_parts[-1]] = value
     else:
         if "a" not in _get_permission(permissions, path[:-1]):
