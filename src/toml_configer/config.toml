@@ -1,5 +1,5 @@
 [config.connections.dev]
-host = 'localhost'
+host = "localhost"
 port = "5432"
 user = "dev"
 

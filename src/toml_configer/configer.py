@@ -3,6 +3,7 @@ import pathlib
 import rtoml
 
 default_permission_file_path = pathlib.Path("permissions.per")
+default_permission_content = "DEFAULT = r,w,a,d \n"
 
 
 def _load_permissions(permission_file_path: str):
@@ -11,18 +12,35 @@ def _load_permissions(permission_file_path: str):
         open(permission_file_path, "x").close()
 
     with open(permission_file_path, "r") as f:
+        is_comment = False
         for line in f.read().replace(" ", "").split("\n"):
-            if line != "":
+            if line.startswith("/*"):
+                is_comment = True
+
+            if line != "" and line[0] != "#" and not is_comment:
                 key, value = line.split("=")
                 permissions.update({key: value})
+
+            if line.endswith("*/"):
+                is_comment = False
+
     return permissions
 
 
 def _get_permission(permissions: dict, key: str):
-    if key in permissions:
-        return permissions[key].split(",")
-    else:
-        return "r"
+    out = ""
+
+    if "DEFAULT" in permissions:
+        out += permissions["DEFAULT"]
+
+    key_parts = key.split(".")
+    parts = ""
+    for part in key_parts:
+        parts += part + "."
+        if parts[:-1] in permissions:
+            out += "," + permissions[parts[:-1]]
+
+    return out.split(",")
 
 
 def load(config_file_path: str):
@@ -31,13 +49,17 @@ def load(config_file_path: str):
     if "permissions" not in config:
         print("Warning: No permissions file found. Creating default permissions.")
         if not default_permission_file_path.exists():
-            open(default_permission_file_path, "w").close()
+            pf = open(default_permission_file_path, "w")
+            pf.write(default_permission_content)
+            pf.close()
         config.update({"permissions": {"file": str(default_permission_file_path)}})
         save(config, config_file_path)
     elif "file" not in config["permissions"]:
         print("Warning: No permissions file found. Creating default permissions.")
         if not default_permission_file_path.exists():
-            open(default_permission_file_path, "w").close()
+            pf = open(default_permission_file_path, "w")
+            pf.write(default_permission_content)
+            pf.close()
         config["permissions"].update({"file": str(default_permission_file_path)})
         save(config, config_file_path)
     return config
